@@ -3,36 +3,45 @@ import * as S from "./styles";
 import despesasMock from "../mocks/despesas.json";
 import ChatGemini from "../components/chat-gemini/Chat-Gemini";
 import http from '../http';
+import DeleteForm from '../components/delete-form/delete';
 
 const Dashboard = () => {
   const [despesas, setDespesas] = useState(despesasMock);
+  const [despesaToDelete, setDespesaToDelete] = useState(null);
+  const [isDeleteFormVisible, setIsDeleteFormVisible] = useState(false);
 
   useEffect(() => {
-  const fetchDespesas = async () => {
+    const fetchDespesas = async () => {
       try {
-      const response = await http.get('/despesas');
-         setDespesas(response.data);
-         console.log(response.data)
+        const response = await http.get('/despesas');
+        setDespesas(response.data);
+        console.log("Despesas fetched:", response.data);
       } catch (error) {
-         console.error("Erro ao buscar despesas:", error);
-       }
-     };
-     fetchDespesas();
-   }, []);
+        console.error("Erro ao buscar despesas:", error);
+      }
+    };
+    fetchDespesas();
+  }, []);
 
-
-   const deleteDespesa =  async (despesaId) => {
-    console.log(despesaId)
-
+  const deleteDespesa = async (despesaId) => {
     try {
-      const response = await http.delete(`/despesas/${despesaId}`);
-      setDespesas(prev => prev.filter(despesa => despesa.id !== despesaId))
-      } catch (error) {
-         console.error("Erro ao buscar despesas:", error);
-       }
-     };
+      console.log("Deleting despesa with ID:", despesaId);
+      await http.delete(`/despesas/${despesaId}`);
+      setDespesas(prev => prev.filter(despesa => despesa.id !== despesaId));
+    } catch (error) {
+      console.error("Erro ao deletar despesa:", error);
+    }
+  };
 
-    
+  const handleDeleteClick = (despesa) => {
+    setDespesaToDelete(despesa);
+    setIsDeleteFormVisible(true);
+  };
+
+  const handleDeleteFormClose = () => {
+    setIsDeleteFormVisible(false);
+    setDespesaToDelete(null);
+  };
 
   const calcularTotais = () => {
     const entradas = despesas
@@ -50,7 +59,6 @@ const Dashboard = () => {
   return (
     <S.TableContainer>
       <S.Title>Dashboard de Finanças</S.Title>
-      {/* Totais de Entradas, Saídas e Saldo */}
       <S.CardsContainer>
         <S.Card bgColor="#FF8C00">
           <p>Entradas</p>
@@ -66,7 +74,6 @@ const Dashboard = () => {
         </S.Card>
       </S.CardsContainer>
       
-      {/* Tabela com os dados das despesas */}
       <S.StyledTable>
         <thead>
           <tr>
@@ -75,6 +82,7 @@ const Dashboard = () => {
             <th>Valor</th>
             <th>Tipo</th>
             <th>Data</th>
+            <th>Excluir</th>
           </tr>
         </thead>
         <tbody>
@@ -85,12 +93,21 @@ const Dashboard = () => {
               <td>R$ {despesa.valor.toFixed(2)}</td>
               <td>{despesa.tipo}</td>
               <td>{despesa.data}</td>
-              <button onClick={() =>{ deleteDespesa(despesa.id)}}>X</button>
+              <td>
+                <button onClick={() => handleDeleteClick(despesa)}>X</button>
+              </td>
             </tr>
           ))}
         </tbody>
       </S.StyledTable>
       <ChatGemini despesas={despesas} />
+      {isDeleteFormVisible && (
+        <DeleteForm
+          despesa={despesaToDelete}
+          onClose={handleDeleteFormClose}
+          onDelete={deleteDespesa}
+        />
+      )}
     </S.TableContainer>
   );
 };
