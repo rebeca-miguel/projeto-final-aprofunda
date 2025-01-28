@@ -3,7 +3,6 @@ import * as S from "./styles";
 import { AiOutlineMessage } from "react-icons/ai";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../../services/firebase";
-import axios from "axios";
 import { IoIosCloseCircle } from "react-icons/io";
 import http from "../../http";
 

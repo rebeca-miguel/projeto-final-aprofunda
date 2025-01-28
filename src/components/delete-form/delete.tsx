@@ -25,7 +25,7 @@ const DeleteForm: React.FC<DeleteFormProps> = ({ despesa, onClose, onDelete }) =
     }
 
     try {
-      await http.delete(`/despesas/${despesa.id}`);
+      
       onDelete(despesa.id);
       onClose();
     } catch (error) {

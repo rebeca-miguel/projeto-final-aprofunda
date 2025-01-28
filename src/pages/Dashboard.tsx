@@ -3,6 +3,8 @@ import * as S from "./styles";
 import ChatGemini from "../components/chat-gemini/Chat-Gemini"; 
 import http from "../http"; 
 import DeleteForm from "../components/delete-form/delete"; 
+import { auth } from "../services/firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 
 interface Despesa {
@@ -18,12 +20,13 @@ const Dashboard: React.FC = () => {
   const [despesas, setDespesas] = useState<Despesa[]>([]); 
   const [despesaToDelete, setDespesaToDelete] = useState<Despesa | null>(null);
   const [isDeleteFormVisible, setIsDeleteFormVisible] = useState(false);
+  const [user] = useAuthState(auth);
 
 
   useEffect(() => {
     const fetchDespesas = async () => {
       try {
-        const response = await http.get<Despesa[]>("/despesas"); 
+        const response = await http.get<Despesa[]>(`/despesas/${user?.uid}`); 
         setDespesas(response.data);
         console.log("Despesas fetched:", response.data); 
       } catch (error) {
@@ -36,6 +39,7 @@ const Dashboard: React.FC = () => {
 
   
   const deleteDespesa = async (despesaId: number) => {
+    console.log(despesaId)
     try {
       await http.delete(`/despesas/${despesaId}`); 
       setDespesas((prev) => prev.filter((despesa) => despesa.id !== despesaId)); 
